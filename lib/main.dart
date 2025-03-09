@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mark/screens/home_screen.dart';
 import 'services/navigation_service.dart';
 import 'config/routes.dart';
 import 'screens/math_game_screen.dart';
@@ -21,8 +22,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      initialRoute: MathGameScreen.route,
-      routes: Routes.routes,
+      initialRoute: HomeScreen.route,
       onGenerateRoute: Routes.onGenerateRoute,
       onUnknownRoute: Routes.onUnknownRoute,
     );

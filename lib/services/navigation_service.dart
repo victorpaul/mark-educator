@@ -7,23 +7,35 @@ class NavigationService {
 
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-  void goTo(String route, {dynamic args}) {
-    navigatorKey.currentState?.pushNamed(route, arguments: args);
+  Future<dynamic> goTo(String routeName, {Object? args}) {
+    return navigatorKey.currentState!.pushNamed(routeName, arguments: args);
+  }
+
+  Future<dynamic> goToWithParams(String routeName, Map<String, dynamic> params) {
+    final uri = Uri(
+      path: routeName,
+      queryParameters: params.map((key, value) => MapEntry(key, value.toString())),
+    ).toString();
+    return navigatorKey.currentState!.pushNamed(uri, arguments: params);
+  }
+
+  Future<dynamic> goToAndReplace(String routeName, {Object? args}) {
+    return navigatorKey.currentState!.pushReplacementNamed(routeName, arguments: args);
+  }
+
+  Future<dynamic> goToAndReplaceWithParams(String routeName, Map<String, dynamic> params) {
+    final uri = Uri(
+      path: routeName,
+      queryParameters: params.map((key, value) => MapEntry(key, value.toString())),
+    ).toString();
+    return navigatorKey.currentState!.pushReplacementNamed(uri, arguments: params);
   }
 
   void goBack() {
-    navigatorKey.currentState?.pop();
+    navigatorKey.currentState!.pop();
   }
 
-  void goToAndReplace(String route, {dynamic args}) {
-    navigatorKey.currentState?.pushReplacementNamed(route, arguments: args);
-  }
-
-  void goToAndClearStack(String route, {dynamic args}) {
-    navigatorKey.currentState?.pushNamedAndRemoveUntil(
-      route,
-      (route) => false,
-      arguments: args,
-    );
+  void goToHome() {
+    navigatorKey.currentState!.pushNamedAndRemoveUntil('/', (route) => false);
   }
 } 

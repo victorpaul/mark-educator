@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:mark/extensions/widgets_extensions.dart';
 import '../models/math_problem.dart';
 import '../theme/app_theme.dart';
 import '../services/notification_service.dart';
@@ -10,12 +11,20 @@ import '../config/difficulty_config.dart';
 import '../widgets/difficulty_selector.dart';
 import '../widgets/number_visualizer.dart';
 import '../widgets/progress_train.dart';
+import '../widgets/operation_selector.dart';
 import './congratulation_screen.dart';
 
 class MathGameScreen extends StatefulWidget {
   static const String route = '/math-game';
   
-  const MathGameScreen({super.key});
+  final String? initialOperation;
+  final int? difficultyIndex;
+
+  const MathGameScreen({
+    super.key,
+    this.initialOperation,
+    this.difficultyIndex,
+  });
 
   @override
   State<MathGameScreen> createState() => _MathGameScreenState();
@@ -28,7 +37,8 @@ class _MathGameScreenState extends State<MathGameScreen> {
   final _firework = FireworkService();
   final _audio = AudioService();
   final _navigation = NavigationService();
-  DifficultyLevel _selectedLevel = DifficultyConfig.levels.first;
+  late DifficultyLevel _selectedLevel;
+  late String _selectedOperation;
   int _correctAnswers = 0;
   int _wrongAnswers = 0;
   final int _targetAnswers = 5;
@@ -38,7 +48,11 @@ class _MathGameScreenState extends State<MathGameScreen> {
   @override
   void initState() {
     super.initState();
-    _currentProblem = MathProblem.random(_selectedLevel);
+    _selectedOperation = widget.initialOperation ?? '+';
+    _selectedLevel = widget.difficultyIndex != null 
+      ? DifficultyConfig.levels[widget.difficultyIndex!]
+      : DifficultyConfig.levels.first;
+    _currentProblem = MathProblem.random(_selectedLevel, operation: _selectedOperation);
     _blockAndPlayAudio();
   }
 
@@ -53,7 +67,7 @@ class _MathGameScreenState extends State<MathGameScreen> {
     return _audio
       .playNumber(_currentProblem.firstNumber)
       .then((_) => Future.delayed(const Duration(milliseconds: 500)))
-      .then((_) => _audio.playMathOperation('+'))
+      .then((_) => _audio.playMathOperation(_selectedOperation))
       .then((_) => Future.delayed(const Duration(milliseconds: 500)))
       .then((_) => _audio.playNumber(_currentProblem.secondNumber))
       .then((_) => Future.delayed(const Duration(milliseconds: 500)))
@@ -72,7 +86,7 @@ class _MathGameScreenState extends State<MathGameScreen> {
   void _generateNewProblem() {
     setState(() {
       _previousProblem = _currentProblem;
-      _currentProblem = MathProblem.random(_selectedLevel, _previousProblem);
+      _currentProblem = MathProblem.random(_selectedLevel, previousProblem: _previousProblem, operation: _selectedOperation);
     });
     _blockAndPlayAudio();
   }
@@ -117,10 +131,22 @@ class _MathGameScreenState extends State<MathGameScreen> {
     setState(() {
       _selectedLevel = level;
       _previousProblem = null;
-      _currentProblem = MathProblem.random(level);
+      _currentProblem = MathProblem.random(level, operation: _selectedOperation);
       _correctAnswers = 0;
     });
     _notify.showSuccess('Рівень змінено на: ${level.name} ${level.emoji}');
+    _blockAndPlayAudio();
+  }
+
+  void _onOperationChanged(String operation) {
+    setState(() {
+      _selectedOperation = operation;
+      _previousProblem = null;
+      _currentProblem = MathProblem.random(_selectedLevel, operation: operation);
+      _correctAnswers = 0;
+      _wrongAnswers = 0;
+    });
+    _notify.showSuccess('Операцію змінено на: ${operation == '+' ? 'додавання' : 'віднімання'}');
     _blockAndPlayAudio();
   }
 
@@ -132,12 +158,34 @@ class _MathGameScreenState extends State<MathGameScreen> {
           children: [
             Column(
               children: [
-                // Селектор складності
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: DifficultySelector(
-                    selectedLevel: _selectedLevel,
-                    onLevelSelected: _onDifficultyChanged,
+                // Перемикачі
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      // Кнопка повернення на головну
+                      IconButton(
+                        onPressed: () => _navigation.goToHome(),
+                        icon: const Icon(
+                          Icons.home_rounded,
+                          size: 32,
+                          color: Colors.blue,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // Перемикач операцій
+                      OperationSelector(
+                        selectedOperation: _selectedOperation,
+                        onOperationSelected: _onOperationChanged,
+                      ),
+                      const SizedBox(width: 16),
+                      // Селектор складності
+                      DifficultySelector(
+                        selectedLevel: _selectedLevel,
+                        onLevelSelected: _onDifficultyChanged,
+                      ).wrapExpanded(),
+                    ],
                   ),
                 ),
                 // Прогрес-потяг
@@ -172,10 +220,10 @@ class _MathGameScreenState extends State<MathGameScreen> {
                                       padding: const EdgeInsets.all(16),
                                     ),
                                   ),
-                                  const Padding(
+                                  Padding(
                                     padding: EdgeInsets.symmetric(horizontal: 16),
                                     child: Text(
-                                      '+',
+                                      _selectedOperation,
                                       style: TextStyle(
                                         fontSize: 48,
                                         fontWeight: FontWeight.bold,

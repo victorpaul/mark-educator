@@ -37,10 +37,26 @@ class CongratulationScreen extends StatelessWidget {
 
     return Container(
       color: Colors.blue.withOpacity(0.9),
-      child: Center(
+      child: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Кнопка повернення на головну
+            Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: IconButton(
+                  onPressed: () => _navigation.goToHome(),
+                  icon: const Icon(
+                    Icons.home_rounded,
+                    size: 32,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            const Spacer(),
             const Text(
               '🎉 Вітаємо! 🎉',
               style: TextStyle(
@@ -102,9 +118,9 @@ class CongratulationScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 48),
+            const Spacer(),
             ElevatedButton(
-              onPressed: () => _navigation.goToAndReplace(MathGameScreen.route),
+              onPressed: () => _navigation.goToHome(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
                 padding: const EdgeInsets.symmetric(
@@ -116,13 +132,14 @@ class CongratulationScreen extends StatelessWidget {
                 ),
               ),
               child: const Text(
-                'Спробувати ще раз! 🚀',
+                'На головну 🏠',
                 style: TextStyle(
                   fontSize: 24,
                   color: Colors.white,
                 ),
               ),
             ),
+            const SizedBox(height: 32),
           ],
         ),
       ),

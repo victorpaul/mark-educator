@@ -6,58 +6,86 @@ import '../services/audio_service.dart';
 class MathProblem {
   final int firstNumber;
   final int secondNumber;
-  final int correctAnswer;
+  final String operation;
   final List<int> options;
 
-  MathProblem({
+  int get correctAnswer => operation == '+' 
+    ? firstNumber + secondNumber 
+    : firstNumber - secondNumber;
+
+  const MathProblem({
     required this.firstNumber,
     required this.secondNumber,
-    required this.correctAnswer,
+    required this.operation,
     required this.options,
   });
 
   /// Створює нову випадкову задачу з додавання
-  factory MathProblem.random(DifficultyLevel level, [MathProblem? previousProblem]) {
-    final random = Random();
+  factory MathProblem.random(DifficultyLevel level, {
+    MathProblem? previousProblem,
+    String operation = '+',
+  }) {
     int first;
     int second;
-    int sum;
+    int maxAttempts = 10;
 
-    // Генеруємо числа поки не отримаємо відповідні умовам
     do {
-      // Генеруємо випадкові числа в межах рівня складності
-      first = level.minNumber + random.nextInt(level.maxNumber - level.minNumber + 1);
-      second = level.minNumber + random.nextInt(level.maxNumber - level.minNumber + 1);
-      sum = first + second;
+      if (operation == '+') {
+        // Для додавання
+        first = Random().nextInt(level.maxNumber) + 1;
+        second = Random().nextInt(level.maxNumber) + 1;
+        // Перевіряємо, щоб сума не перевищувала максимальне значення
+        if (first + second > level.maxSum) {
+          continue;
+        }
+      } else {
+        // Для віднімання
+        first = Random().nextInt(level.maxNumber) + 1;
+        second = Random().nextInt(first) + 1; // Друге число має бути менше першого
+      }
 
-      // Перевіряємо чи це не та сама задача що була раніше
-      final isSameAsPrevious = previousProblem != null &&
-          ((first == previousProblem.firstNumber && second == previousProblem.secondNumber) ||
-           (first == previousProblem.secondNumber && second == previousProblem.firstNumber));
-
-      // Продовжуємо генерувати, якщо сума завелика або задача така ж як попередня
-      if (sum <= level.maxSum && !isSameAsPrevious) {
+      // Перевіряємо, чи нова задача відрізняється від попередньої
+      if (previousProblem == null || 
+          first != previousProblem.firstNumber || 
+          second != previousProblem.secondNumber ||
+          operation != previousProblem.operation) {
         break;
       }
-    } while (true);
 
-    // Створюємо масив можливих відповідей від 1 до максимальної суми
-    final possibleAnswers = List<int>.generate(level.maxSum, (i) => i + 1);
-    possibleAnswers.remove(sum); // Видаляємо правильну відповідь
-    possibleAnswers.shuffle(); // Перемішуємо
+      maxAttempts--;
+    } while (maxAttempts > 0);
 
-    // Беремо до трьох неправильних відповідей
-    final wrongAnswers = possibleAnswers.take(3).toList();
-    
-    // Додаємо правильну відповідь і перемішуємо
-    final options = [...wrongAnswers, sum]..shuffle();
+    final correctAnswer = operation == '+' ? first + second : first - second;
+    final options = _generateOptions(correctAnswer, level.maxSum);
 
     return MathProblem(
       firstNumber: first,
       secondNumber: second,
-      correctAnswer: sum,
+      operation: operation,
       options: options,
     );
+  }
+
+  static List<int> _generateOptions(int correctAnswer, int maxSum) {
+    final options = <int>{correctAnswer};
+    final random = Random();
+
+    // Генеруємо варіанти відповідей
+    while (options.length < 4 && options.length < maxSum) {
+      // Для малих чисел додаємо ближчі варіанти
+      final diff = random.nextInt(3) + 1;
+      final addOrSubtract = random.nextBool();
+      
+      final newOption = addOrSubtract 
+        ? correctAnswer + diff 
+        : correctAnswer - diff;
+
+      if (newOption > 0 && newOption <= maxSum) {
+        options.add(newOption);
+      }
+    }
+
+    return options.toList()..shuffle();
   }
 
   /// Отримати кількість варіантів відповідей
@@ -68,7 +96,8 @@ class MathProblem {
 
   /// Перевірити чи задача така ж як інша
   bool isSameAs(MathProblem other) {
-    return (firstNumber == other.firstNumber && secondNumber == other.secondNumber) ||
-           (firstNumber == other.secondNumber && secondNumber == other.firstNumber);
+    return firstNumber == other.firstNumber &&
+           secondNumber == other.secondNumber &&
+           operation == other.operation;
   }
 }
