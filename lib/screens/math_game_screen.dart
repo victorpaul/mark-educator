@@ -24,7 +24,6 @@ class MathGameScreen extends StatefulWidget {
 class _MathGameScreenState extends State<MathGameScreen> {
   late MathProblem _currentProblem;
   MathProblem? _previousProblem;
-  final GlobalKey _shakeKey = GlobalKey();
   final _notify = NotificationService();
   final _firework = FireworkService();
   final _audio = AudioService();
@@ -34,6 +33,7 @@ class _MathGameScreenState extends State<MathGameScreen> {
   int _wrongAnswers = 0;
   final int _targetAnswers = 5;
   bool _optionsHidden = true;
+  bool _isShaking = false;
 
   @override
   void initState() {
@@ -100,10 +100,16 @@ class _MathGameScreenState extends State<MathGameScreen> {
         });
       }
     } else {
-      setState(() => _wrongAnswers++);
-      await _audio.playWrongAnswer();
+      setState(() {
+        _wrongAnswers++;
+        _isShaking = true;
+      });
+      _audio.playWrongAnswer();
       _notify.showError('Спробуй ще раз! 🤔');
-      _shakeScreen();
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (mounted) {
+        setState(() => _isShaking = false);
+      }
     }
   }
 
@@ -116,14 +122,6 @@ class _MathGameScreenState extends State<MathGameScreen> {
     });
     _notify.showSuccess('Рівень змінено на: ${level.name} ${level.emoji}');
     _blockAndPlayAudio();
-  }
-
-  void _shakeScreen() {
-    final animationController = AnimationController(
-      vsync: Navigator.of(context),
-      duration: AppTheme.defaultAnimationDuration,
-    );
-    animationController.forward();
   }
 
   @override
@@ -227,8 +225,7 @@ class _MathGameScreenState extends State<MathGameScreen> {
                                     ),
                                   ),
                                 ],
-                              ).animate(key: _shakeKey)
-                                .shake(duration: AppTheme.defaultAnimationDuration),
+                              ).animate(target: _isShaking ? 1 : 0).shake(),
                             ],
                           ),
                         ),
