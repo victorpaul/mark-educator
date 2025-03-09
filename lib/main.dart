@@ -1,21 +1,30 @@
 import 'package:flutter/material.dart';
+import 'services/navigation_service.dart';
+import 'config/routes.dart';
 import 'screens/math_game_screen.dart';
-import 'theme/app_theme.dart';
 
 void main() {
-  runApp(const MathApp());
+  runApp(const MyApp());
 }
 
-class MathApp extends StatelessWidget {
-  const MathApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final navigationService = NavigationService();
+
     return MaterialApp(
-      title: 'Математика для дітей',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.theme,
-      home: const MathGameScreen(),
+      title: 'Навчальні ігри',
+      navigatorKey: navigationService.navigatorKey,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      initialRoute: MathGameScreen.route,
+      routes: Routes.routes,
+      onGenerateRoute: Routes.onGenerateRoute,
+      onUnknownRoute: Routes.onUnknownRoute,
     );
   }
 }
