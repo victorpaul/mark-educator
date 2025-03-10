@@ -21,7 +21,7 @@ class DifficultyLevel {
 class DifficultyConfig {
   static const List<DifficultyLevel> levels = [
     DifficultyLevel(
-      name: 'Легкий',
+      name: '1-4',
       emoji: '🌱',
       color: Colors.green,
       minNumber: 1,
@@ -29,21 +29,21 @@ class DifficultyConfig {
       maxSum: 5,
     ),
     DifficultyLevel(
-      name: 'Середній',
+      name: '1-7',
       emoji: '🌟',
       color: Colors.orange,
       minNumber: 1,
-      maxNumber: 8,
+      maxNumber: 7,
       maxSum: 9,
     ),
-    // DifficultyLevel(
-    //   name: 'Складний',
-    //   emoji: '🔥',
-    //   color: Colors.red,
-    //   minNumber: 1,
-    //   maxNumber: 7,
-    //   maxSum: 8,
-    // ),
+    DifficultyLevel(
+      name: 'Складний',
+      emoji: '🔥',
+      color: Colors.red,
+      minNumber: 1-9,
+      maxNumber: 9,
+      maxSum: 10,
+    ),
     // DifficultyLevel(
     //   name: 'Експерт',
     //   emoji: '🏆',

@@ -41,7 +41,7 @@ class _MathGameScreenState extends State<MathGameScreen> {
   late String _selectedOperation;
   int _correctAnswers = 0;
   int _wrongAnswers = 0;
-  final int _targetAnswers = 5;
+  final int _targetAnswers = 10;
   bool _optionsHidden = true;
   bool _isShaking = false;
 
